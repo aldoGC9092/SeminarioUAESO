@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "Hello World"
+pwd
+ls -lha
+mkdir Test
+cd Test
+pwd
+ls -lha

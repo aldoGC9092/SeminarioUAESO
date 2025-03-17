@@ -1,0 +1,88 @@
+#!/bin/bash
+
+mostrarMenu(){
+	echo "1. Listar contenido de un fichero"
+	echo "2. Crear archivo con una linea"
+	echo "3. Comparar archivos"
+	echo "4. Uso de awk"
+	echo "5. Uso de grep"
+	echo "0. Salir"
+}
+
+listarContenido(){
+	read -p "Ingrese la ruta absoluta del directorio: " ruta
+	if [ -e "$ruta" ]; then
+		ls -lha "$ruta"
+	else
+		echo "Ruta inexistente"
+	fi
+}
+
+crearArchivo(){
+	read -p "Ingresa el nombre del archivo: " fileName
+	read -p "Ingresa una linea de texto: " data
+	echo $data > $fileName
+	echo "Archivo '$fileName' creado exitosamente"
+}
+
+compararArchivos(){
+	read -p "Ingresa la ruta absoluta del primer archivo: " file1
+	read -p "Ingresa la ruta absoluta del segundo archivo: " file2
+	if [ -f $file1 ] && [ -f $file2 ]; then
+		diff $file1 $file2
+	else
+		echo "Uno o ambos archivos no existe"
+	fi
+}
+
+usoAwk() {
+	read -p "Ingresa la ruta absoluta del archivo a usar con awk: " file
+	if [ -f $file ]; then
+		echo "Archivo completo"
+		cat $file
+		echo ""
+		echo "Primer palabra de cada fila"
+		awk '{print $1}' $file
+		echo ""
+		echo "Primer y cuarta palabra de cada fila"
+		awk '{print $1,$4}' $file
+		echo ""
+		echo "Unicamente las bebidas"
+		awk '/Bebidas/ {print $1,$4}' $file
+		echo ""
+	else
+		echo "No existe el archivo"
+	fi
+}
+
+usoGrep(){
+	read -p "Ingresa la ruta absoluta del archivo a usar con Grep: " file
+	if [ -e $file ]; then
+		read -p "Ingresa una palabra a buscar: " word
+		echo "Buscar $word en el archivo"
+		grep -i "$word" $file
+		echo ""
+		echo "Mostrar las coincidencias"
+		grep -c -i "$word" $file
+		echo ""
+		echo "Coincidencia con la palabra completa"
+		grep -w "$word" $file
+	else
+		echo "Archivo inexistente"
+	fi
+}
+
+while true; do
+	mostrarMenu
+	read -p "Selecciona una opcion(1-5): " opcion
+	case $opcion in
+		1) listarContenido ;;
+		2) crearArchivo ;;
+		3) compararArchivos ;;
+		4) usoAwk ;;
+		5) usoGrep ;;
+		0) echo "Saliendo del script..."; break ;;
+		*) echo "Opcion invalida" ;;
+	esac
+	echo ""
+done

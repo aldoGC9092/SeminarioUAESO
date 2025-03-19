@@ -1,0 +1,71 @@
+#!/bin/bash
+
+vmName=""
+memory=0
+cpus=0
+vram=0
+hdd=0
+
+echo "Este script te ayudara a crear y configurar una MV en Oracle VBox"
+read -p "Desea continuar?(s/n): " opt
+if [ $opt = 's' ] || [ $opt = 'S' ]; then
+	read -p "Nombre para la MV de Linux (Debian): " vmName
+	VBoxManage createvm --name $vmName --ostype Debian12_64 --register
+	echo "Maquina Virtual '$vmName' creada correctamente!"
+	echo ""
+
+	while [[ $cpus -le 0 || $cpus -gt 4 ]]; do
+		read -p "Numero de CPUs (1-4): " cpus
+		if [ $cpus -gt 4 ] || [ $cpus -le 0 ]; then
+			echo "No puedes elegir mas de 4 CPUs o menos de 0"
+		fi
+	done
+
+	while [[ $memory -lt 512 || $memory -gt 2048 ]]; do
+		read -p "Numero de bytes de memoria (510-2048): " memory
+		if [ $memory -gt 2048 ] || [ $memory -lt 512 ]; then
+			echo "No puedes elegir mas de 2GB"
+		fi
+	done
+
+	while [[ $vram -le 0 || $vram -gt 12 ]]; do
+		read -p "Vram en bytes (1-12): " vram
+		if [ $vram -le 0 ] || [ $vram -gt 12 ]; then
+			echo "Debes elegir entre 1 y 12 bytes"
+		fi
+	done
+
+	VBoxManage modifyvm $vmName --cpus $cpus --memory $memory --vram $vram
+	echo "Configuraciones guardadas correctamente"
+	echo ""
+
+	while [[ $hdd -lt 512 || $hdd -gt 20000 ]]; do
+		read -p "Espacio en bytes para Disco Duro (512-20000): " hdd
+		if [ $hdd -lt 512 ] || [ $hdd -gt 20000 ]; then
+			echo "Debes elegir entre 512 y 20000 bytes"
+		fi
+	done
+
+	#Disco Duro Virtual
+	VBoxManage createhd --filename "/home/aldo/VirtualBox VMs/$vmName/$vmName.vdi" --size $hdd --variant Standard
+	echo ""
+
+	#Controlador SATA
+	VBoxManage storagectl $vmName --name "SATA Controller" --add sata --bootable on
+	echo "Controlador 'SATA' creado correctamente..."
+
+	#Asociacion del controlador con el HD
+	VBoxManage storageattach $vmName --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "/home/aldo/VirtualBox VMs/$vmName/$vmName.vdi"
+	echo "Controlador asociado al HD..."
+
+	#IDE Controller
+	VBoxManage storagectl $vmName --name "IDE Controller" --add ide
+	echo "IDE controller creado correctamente..."
+	echo ""
+
+	echo "MV creada y configurada, a continuacion un resumen"
+	VBoxManage showvminfo $vmName | grep -E "Name|CPUs|Guest OS|Memory size|VRAM size|Storage Controller|IDE|SATA|UUID|vdi"
+
+else
+	echo "Hasta Luego!"
+fi
